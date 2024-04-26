@@ -1,14 +1,16 @@
 
-import random
-
+from wtforms.widgets import HTMLString, html_params, Input
+from wtforms.widgets import  html_params
+from wtforms import widgets
 from flask import Flask, render_template, flash, request, redirect, url_for, session
 from flask_wtf import FlaskForm
 from sqlalchemy import desc
 from wtforms import FileField, PasswordField, StringField, SubmitField
 from wtforms.validators import EqualTo,Email,DataRequired
 from flask_sqlalchemy import SQLAlchemy 
-from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
+
+
+from wtforms import Form, StringField
 
 
 app = Flask(__name__)
@@ -28,28 +30,48 @@ app.app_context().push()
 
 #---------------------------------------------------------------
 # Create Model
+    
+
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     score = db.Column (db.Integer, nullable=False)
 
+
+class ButtonWidget(Input):
+    input_type = 'button'
+
+    def __call__(self, field, **kwargs):
+        """
+        This method is the callback function for the ButtonWidget class.
+        It generates the HTML markup for a button widget and returns it as a string.
+
+        Parameters:
+            field (wtforms.fields.StringField): The StringField instance that this widget is associated with.
+            **kwargs: Additional keyword arguments that can be used to customize the button.
+
+        Returns:
+            HTMLString: The HTML markup for the button.
+        """
+        # Retrieve the 'i' value if passed in kwargs
+        i = kwargs.pop('i', None)
+
+        # Set default values for kwargs
+        kwargs.setdefault('id', field.id)  # Set the id attribute of the button
+        kwargs.setdefault('onclick', "disableButton('" + field.id + "')")  # Set the onclick event of the button
+        kwargs.setdefault('class', 'form-check-input btn btn-success btn-letter')  # Set the class attribute of the button
+        kwargs.setdefault('name', field.name)  # Set the name attribute of the button
+        kwargs.setdefault('value', field._value())  # Set the value of the button
+        kwargs.setdefault('required', True)  # Set the required attribute of the button
+
+        # Generate the HTML markup for the button and return it
+        return HTMLString('<button %s>%s</button>' % (html_params(type=self.input_type, **kwargs), i))
+
+
 	
 class KeyboardForm(FlaskForm):
-    letter = StringField("letter")
-
-
-
-class UserForm(FlaskForm):
-    email= StringField("Email", validators=[DataRequired()])
-    name = StringField("Name", validators=[DataRequired()])
-    phone = StringField("Phone")
-    pw = PasswordField("Password",validators=[DataRequired()])
+    letter = StringField("Letter" , widget=ButtonWidget())
     
-    #pw2 = PasswordField("Password",validators=[DataRequired() , EqualTo('pw') ])
-    submit = SubmitField("Submit")
-
-
-
 
 
 class Question(db.Model):
@@ -75,21 +97,21 @@ wrongs = 5
 @app.route('/', methods=['GET','POST'])
 def play():
         global wrongs
-        if request.method == 'POST': 
-            form = KeyboardForm() 
-            print (form.data)
-            print (form.letter.data)
-              
-            position = str.find(form.letter.data)
-            if position == -1:     
-                flash ("wrong")
-                wrongs -= 1
-            else : 
-                playing[position]= form.letter.data
+        form = KeyboardForm()
+        print (form.letter.data)
+        # if request.method == 'POST': 
+        #     print (form.data)
+        #     position = str.find(form.letter.data)
+        #     if position == -1:     
+        #         flash ("wrong")
+        #         wrongs -= 1
+        #     else : 
+        #         playing[position]= form.letter.data
             
             
         return render_template('index.html' , form = form, str=None, x = letters, playing=playing)
-            
+       
+
 
 @app.errorhandler(404)
 def page_not_found(e):    
@@ -98,7 +120,7 @@ def page_not_found(e):
 #internal server error
 @app.errorhandler(500)
 def page_not_found(e):    
-    return render_template('500.html'), 404
+    return render_template('500.html')
 
 
 

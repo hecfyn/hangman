@@ -1,44 +1,47 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <style>
     .btn-letter {
-        width: 60px; /* Set the width of the buttons */
-        height: 60px; /* Set the height of the buttons */
+        width: 60px;
+        height: 60px;
         font-size: 18px;
-        margin-right: 5px; /* Add margin between buttons */
-        margin-bottom: 5px; /* Add margin below buttons */
-        display: inline-block;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        display: inline-block, bottom;
     }
-</style>
-<p>{{playing}}</p>
-<form method="POST">
-    {{form.hidden_tag()}}
-    <!-- Εμφάνιση των απαντήσεων ως radio buttons με το Bootstrap -->
-    <div class="form-group">
 
-        {% for i in x %}
+    .form-group {
+        display: flex; /* Display the buttons in a row */
+        justify-content: center; /* Align buttons in the center horizontally */
+        align-items: flex-end; /* Align buttons to the bottom */
+        flex-wrap: wrap; /* Allow buttons to wrap to the next line if needed */
+    }
+
+    
+</style>
+
+<body>
+    <form method="POST">
+        {{form.hidden_tag()}}
+        <div class="form-group">
+            {% for i in x %}
+            <div class="form-check">
+                <button class="form-check-input btn btn-outline-success btn-letter" name="{{i}}" value="{{i}}" onclick="disableButton('{{i}}')" id="{{i}}">{{i}}</button>
+            </div>
+            {% endfor %}
             
-        <div class="form-check">
-            {{form.letter(class="btn btn-secondary")}}
-            <button id="{{i}}" onclick="disableButton('{{i}}')" class="form-check-input btn-lg btn btn-success btn-letter"  name = "button" value="{{i}}" required>{{i}}</button>
         </div>
-        
-        {% endfor %}
-        
-        <script>
-            function disableButton(i) {
-              // Get the button element
-              var button = document.getElementById(i);
-              
-              // Disable the button
-              button.disabled = true;
-            }
-        </script>
-        
-    </div>
-   
-</form>
+    </form> 
+
+    <script>
+        function disableButton(i) {
+            var button = document.getElementById(i);
+            button.disabled = true;
+        }
+    </script>
+
 
 
 {% endblock %}
