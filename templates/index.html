@@ -13,6 +13,10 @@
     }
 
     .form-group {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 50px; /* Position the form at about the bottom of the page */
         display: flex; /* Display the buttons in a row */
         justify-content: center; /* Align buttons in the center horizontally */
         align-items: flex-end; /* Align buttons to the bottom */
@@ -20,19 +24,62 @@
     }
 
     
+    .playing {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+        height: 90px; /* Set the height of the container to the full viewport height */
+        flex-wrap: nowrap;
+    }
+
+    .big-bold {
+            font-weight: bold;
+            font-size: 24px;
+    }
+
+   
+    
 </style>
 
 <body>
+    {% for message in get_flashed_messages() %}
+	
+	<div class="alert alert-warning alert-dismissible fade show" role="alert">
+	  {{ message }}
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	</div>
+	
+    {% endfor %}     
     <form method="POST">
         {{form.hidden_tag()}}
         <div class="form-group">
-            {% for i in x %}
+
+            {% for key,value in x.items() %}
+            {% if value == True %}
             <div class="form-check">
-                <button class="form-check-input btn btn-outline-success btn-letter" name="{{i}}" value="{{i}}" onclick="disableButton('{{i}}')" id="{{i}}">{{i}}</button>
+                <button class="form-check-input btn btn-outline-primary btn-letter" name="button" value="{{key}}">{{key}}</button>
             </div>
+            {% else %}
+            <div class="form-check">
+                <button class="form-check-input btn btn-outline-primary btn-letter" name="button" value="{{key}}" disabled>{{key}}</button>
+            </div>
+            {% endif %}
             {% endfor %}
             
+            
+            
         </div>
+        <div class="playing">
+            <p><b>Word:</b>
+                {% for item in playing %}
+                    <span class="big-bold">{{ item }}</span>
+                {% endfor %}
+
+            </p>
+        </div>
+        <p class = "text-danger"><b>Wrong guesses left:</b> {{ wrongs }}</p>
+        <img src="hangman.jpg"> 
     </form> 
 
     <script>

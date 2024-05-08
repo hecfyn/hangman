@@ -1,7 +1,7 @@
 
 from wtforms.widgets import HTMLString, html_params, Input
 from wtforms.widgets import  html_params
-from wtforms import widgets
+from wtforms import HiddenField, widgets
 from flask import Flask, render_template, flash, request, redirect, url_for, session
 from flask_wtf import FlaskForm
 from sqlalchemy import desc
@@ -38,40 +38,10 @@ class Users(db.Model):
     score = db.Column (db.Integer, nullable=False)
 
 
-class ButtonWidget(Input):
-    input_type = 'button'
-
-    def __call__(self, field, **kwargs):
-        """
-        This method is the callback function for the ButtonWidget class.
-        It generates the HTML markup for a button widget and returns it as a string.
-
-        Parameters:
-            field (wtforms.fields.StringField): The StringField instance that this widget is associated with.
-            **kwargs: Additional keyword arguments that can be used to customize the button.
-
-        Returns:
-            HTMLString: The HTML markup for the button.
-        """
-        # Retrieve the 'i' value if passed in kwargs
-        i = kwargs.pop('i', None)
-
-        # Set default values for kwargs
-        kwargs.setdefault('id', field.id)  # Set the id attribute of the button
-        kwargs.setdefault('onclick', "disableButton('" + field.id + "')")  # Set the onclick event of the button
-        kwargs.setdefault('class', 'form-check-input btn btn-success btn-letter')  # Set the class attribute of the button
-        kwargs.setdefault('name', field.name)  # Set the name attribute of the button
-        kwargs.setdefault('value', field._value())  # Set the value of the button
-        kwargs.setdefault('required', True)  # Set the required attribute of the button
-
-        # Generate the HTML markup for the button and return it
-        return HTMLString('<button %s>%s</button>' % (html_params(type=self.input_type, **kwargs), i))
-
-
-	
+str = 'FALL'
 class KeyboardForm(FlaskForm):
-    letter = StringField("Letter" , widget=ButtonWidget())
-    
+    letter = StringField("Letter" )
+    hidden_field = HiddenField(default=str)
 
 
 class Question(db.Model):
@@ -91,25 +61,41 @@ letters = [
     'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
     'Z', 'X', 'C', 'V', 'B', 'N', 'M'
 ]
-str = 'QWER'
-playing = ['_ ' * len(str)]
+letter_dict = {letter: True for letter in letters}
+
+playing = []
+for i in range(len(str)):
+    playing.append('_')
 wrongs = 5
 @app.route('/', methods=['GET','POST'])
 def play():
         global wrongs
+        global playing
+
         form = KeyboardForm()
-        print (form.letter.data)
-        # if request.method == 'POST': 
-        #     print (form.data)
-        #     position = str.find(form.letter.data)
-        #     if position == -1:     
-        #         flash ("wrong")
-        #         wrongs -= 1
-        #     else : 
-        #         playing[position]= form.letter.data
+        positions = []
+
+        if request.method == 'POST':
+            print (playing)
             
+            letter = request.form['button']
+            letter_dict[letter] = False  # Mark the letter as guessed
+            print(letter)
+            # Check if the guessed letter is in the word
+            if letter in str:
+                for i, char in enumerate(str):
+                    if char == letter:
+                        playing[i] = char  # Update playing at the correct positions
+            elif wrongs != 0 :
+                flash("Wrong guess!")
+                
+                wrongs -= 1  # Decrement the wrongs count
+            else : 
+                flash('You lost!')
+
+        return render_template('index.html', form=form, x=letter_dict, playing=playing, wrongs=wrongs)
             
-        return render_template('index.html' , form = form, str=None, x = letters, playing=playing)
+        
        
 
 
